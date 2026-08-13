@@ -108,7 +108,6 @@ let exportPeopleAllSelected = true;
 const YEAR_MONTH_NAMES = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 let yearMonths = Array.from({length:12},(_,i)=>i+1);
 let editingId = null;
-let reloadingForServiceWorker = false;
 
 const qs = s => document.querySelector(s);
 const qsa = s => [...document.querySelectorAll(s)];
@@ -310,14 +309,24 @@ function renderPersonFilter(){
   }
   updateExportControls();
 }
-function showPage(name){
+const PWA_PAGE_KEY = "betreuung-current-page";
+function rememberPage(name){
+  try{sessionStorage.setItem(PWA_PAGE_KEY,name);}catch(_e){}
+}
+function rememberedPage(){
+  try{return sessionStorage.getItem(PWA_PAGE_KEY)||"home";}catch(_e){return "home";}
+}
+function showPage(name,{persist=true,scroll=true}={}){
+  const page=qs("#"+name+"Page");
+  if(!page) name="home";
   qsa(".page").forEach(p=>p.classList.remove("active"));
-  qs("#"+name+"Page").classList.add("active");
+  qs("#"+name+"Page")?.classList.add("active");
   qsa(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
+  if(persist) rememberPage(name);
   if(name==="list") renderList();
   if(name==="year"){ renderYear(); renderStatsByPerson(); }
   if(name==="settings"){ loadConfig(); renderPeriodSettings(); }
-  window.scrollTo({top:0,behavior:"smooth"});
+  if(scroll) window.scrollTo({top:0,behavior:"smooth"});
 }
 function renderNext(){
   const today=isoToday();
@@ -990,10 +999,11 @@ async function refreshAfterReconnect(){
 
 async function registerPwa(){
   if(!("serviceWorker" in navigator)) return;
-  const hadController=Boolean(navigator.serviceWorker.controller);
   try{
     const reg=await navigator.serviceWorker.register("./service-worker.js",{scope:"./"});
-    await reg.update();
+    // Updates are activated in the background. Never force a page reload here:
+    // on iOS a controllerchange can otherwise cause a reload/claim loop.
+    reg.update().catch(()=>{});
     if(reg.waiting) reg.waiting.postMessage({type:"SKIP_WAITING"});
     reg.addEventListener("updatefound",()=>{
       const worker=reg.installing;
@@ -1003,11 +1013,6 @@ async function registerPwa(){
           worker.postMessage({type:"SKIP_WAITING"});
         }
       });
-    });
-    navigator.serviceWorker.addEventListener("controllerchange",()=>{
-      if(!hadController || reloadingForServiceWorker)return;
-      reloadingForServiceWorker=true;
-      location.reload();
     });
   }catch(e){console.warn("PWA Service Worker konnte nicht registriert werden",e);}
 }
@@ -1263,5 +1268,6 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   try{await loadPeriods();}catch(e){toast(e.message);}
   try{await loadCalendarSubscriptions();}catch(e){if(navigator.onLine) toast(e.message);}
   try{await loadConfig();}catch(e){if(navigator.onLine) toast(e.message);}
+  showPage(rememberedPage(),{persist:false,scroll:false});
   applyOnlineState();
 });
