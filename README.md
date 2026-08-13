@@ -1,4 +1,7 @@
-# Betreuungsplan – GitHub Pages PWA (v40)
+# Betreuung PWA – GitHub Pages v41
+
+Diese Version behebt die Navigation unter einer strikten Content-Security-Policy. Inline-`onclick`-Handler wurden entfernt und durch CSP-sichere Event-Listener ersetzt. Der Service-Worker-Cache wurde auf v41 erhöht.
+
 
 Dieses Repository enthält **nur das statische Frontend**. Es enthält keine SQLite-Daten, keine Flask-App und keine Cloudflare-Zugangsdaten.
 

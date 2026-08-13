@@ -12,7 +12,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="./favicon-v17.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-v17.png">
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./apple-touch-icon-v17.png">
-  <link rel="stylesheet" href="./app.css?v=40">
+  <link rel="stylesheet" href="./app.css?v=41">
   <title>Betreuungsplan</title>
 </head>
 <body>
@@ -64,7 +64,7 @@
       </div>
 
       <div class="card">
-        <div class="row"><h3>Die nächsten 7 Tage</h3><span class="spacer"></span><button class="secondary" onclick="showPage('list')">Alle</button></div>
+        <div class="row"><h3>Die nächsten 7 Tage</h3><span class="spacer"></span><button class="secondary" type="button" data-action="show-page" data-page-target="list">Alle</button></div>
         <div id="nextList" class="list"></div>
       </div>
     </div>
@@ -249,20 +249,20 @@
   </section>
 </div>
 
-<button class="fab" aria-label="Eintrag hinzufügen" onclick="openModal()"><span class="fab-plus" aria-hidden="true"></span></button>
+<button class="fab" type="button" aria-label="Eintrag hinzufügen" data-action="open-modal"><span class="fab-plus" aria-hidden="true"></span></button>
 
 <nav class="bottomnav">
   <div class="navinner">
-    <button class="navbtn active" data-page="home" onclick="showPage('home')"><span class="ico">⌂</span>Eintragen</button>
-    <button class="navbtn" data-page="list" onclick="showPage('list')"><span class="ico">≡</span>Liste</button>
-    <button class="navbtn" data-page="year" onclick="showPage('year')"><span class="ico">▦</span>Jahr</button>
-    <button class="navbtn" data-page="settings" onclick="showPage('settings')"><span class="ico">⚙</span>Setup</button>
+    <button class="navbtn active" type="button" data-page="home"><span class="ico">⌂</span>Eintragen</button>
+    <button class="navbtn" type="button" data-page="list"><span class="ico">≡</span>Liste</button>
+    <button class="navbtn" type="button" data-page="year"><span class="ico">▦</span>Jahr</button>
+    <button class="navbtn" type="button" data-page="settings"><span class="ico">⚙</span>Setup</button>
   </div>
 </nav>
 
-<div id="modalBack" class="modalback" onclick="if(event.target===this)closeModal()">
+<div id="modalBack" class="modalback" data-backdrop-close="modal">
   <div class="modal">
-    <div class="row"><h3 id="modalTitle">Betreuung eintragen</h3><span class="spacer"></span><button class="close" onclick="closeModal()">✕</button></div>
+    <div class="row"><h3 id="modalTitle">Betreuung eintragen</h3><span class="spacer"></span><button class="close" type="button" data-action="close-modal">✕</button></div>
     <label class="label">Datum</label>
     <input id="modalDate" class="input" type="date"/>
     <div id="modalDateContext" class="date-context"></div>
@@ -289,14 +289,14 @@
 </div>
 
 
-<div id="exportPeopleModalBack" class="modalback export-modalback" onclick="if(event.target===this)closeExportPeopleModal()">
+<div id="exportPeopleModalBack" class="modalback export-modalback" data-backdrop-close="export-people">
   <div class="modal export-modal" role="dialog" aria-modal="true" aria-labelledby="exportPeopleTitle">
     <div class="export-modal-head">
       <div>
         <h3 id="exportPeopleTitle">Personen auswählen</h3>
         <p class="small">Die Auswahl gilt für Liste, CSV und PDF.</p>
       </div>
-      <button class="close" onclick="closeExportPeopleModal()" aria-label="Schliessen">✕</button>
+      <button class="close" type="button" data-action="close-export-people" aria-label="Schliessen">✕</button>
     </div>
     <div class="export-quick-actions export-quick-actions-single">
       <button id="exportPeopleAll" class="secondary" type="button">Alle Personen auswählen</button>
@@ -306,14 +306,14 @@
   </div>
 </div>
 
-<div id="yearMonthsModalBack" class="modalback export-modalback" onclick="if(event.target===this)closeYearMonthsModal()">
+<div id="yearMonthsModalBack" class="modalback export-modalback" data-backdrop-close="year-months">
   <div class="modal export-modal month-select-modal" role="dialog" aria-modal="true" aria-labelledby="yearMonthsTitle">
     <div class="export-modal-head">
       <div>
         <h3 id="yearMonthsTitle">Monate auswählen</h3>
         <p class="small">Die Auswahl gilt für Ansicht, CSV und PDF.</p>
       </div>
-      <button class="close" onclick="closeYearMonthsModal()" aria-label="Schliessen">✕</button>
+      <button class="close" type="button" data-action="close-year-months" aria-label="Schliessen">✕</button>
     </div>
     <div class="export-quick-actions export-quick-actions-single">
       <button id="yearMonthsAll" class="secondary" type="button">Alle Monate auswählen</button>
@@ -323,14 +323,14 @@
   </div>
 </div>
 
-<div id="batchModalBack" class="modalback batch-modalback" onclick="if(event.target===this)closeBatchModal()">
+<div id="batchModalBack" class="modalback batch-modalback" data-backdrop-close="batch">
   <div class="modal batch-modal" role="dialog" aria-modal="true" aria-labelledby="batchModalTitle">
     <div class="batch-head">
       <div>
         <h3 id="batchModalTitle">Mehrere Einträge</h3>
         <p class="batch-hint">Einmalig erzeugen – danach sind es normale Einzeltermine.</p>
       </div>
-      <button class="close" onclick="closeBatchModal()" aria-label="Schliessen">✕</button>
+      <button class="close" type="button" data-action="close-batch" aria-label="Schliessen">✕</button>
     </div>
 
     <div class="batch-form-grid">
@@ -391,9 +391,9 @@
   </div>
 </div>
 
-<div id="personEditorBack" class="modalback person-editor-back" onclick="if(event.target===this)closePersonEditor()">
+<div id="personEditorBack" class="modalback person-editor-back" data-backdrop-close="person-editor">
   <div class="modal person-editor-modal" role="dialog" aria-modal="true" aria-labelledby="personEditorTitle">
-    <div class="row person-editor-head"><h3 id="personEditorTitle">Betreuungsperson bearbeiten</h3><span class="spacer"></span><button class="close" type="button" onclick="closePersonEditor()">✕</button></div>
+    <div class="row person-editor-head"><h3 id="personEditorTitle">Betreuungsperson bearbeiten</h3><span class="spacer"></span><button class="close" type="button" data-action="close-person-editor">✕</button></div>
     <input id="personEditId" type="hidden">
     <label class="label" for="personEditName">Name</label>
     <input id="personEditName" class="input" autocomplete="off">
@@ -407,9 +407,9 @@
 </div>
 
 
-<div id="connectionModalBack" class="modalback" onclick="if(event.target===this)closeConnectionSettings()">
+<div id="connectionModalBack" class="modalback" data-backdrop-close="connection">
   <div class="modal connection-modal" role="dialog" aria-modal="true" aria-labelledby="connectionTitle">
-    <div class="row"><h3 id="connectionTitle">Server verbinden</h3><span class="spacer"></span><button id="connectionClose" class="close" type="button" onclick="closeConnectionSettings()">✕</button></div>
+    <div class="row"><h3 id="connectionTitle">Server verbinden</h3><span class="spacer"></span><button id="connectionClose" class="close" type="button" data-action="close-connection">✕</button></div>
     <p class="small">Die Zugangsdaten werden nur in dieser PWA auf diesem Gerät gespeichert und nicht zu GitHub übertragen.</p>
     <label class="label" for="pwaServer">Datenserver</label>
     <input id="pwaServer" class="input" type="url" inputmode="url" autocomplete="url" placeholder="https://betreuung.example.net">
@@ -429,6 +429,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="./app.js?v=40"></script>
+<script src="./app.js?v=41"></script>
 </body>
 </html>

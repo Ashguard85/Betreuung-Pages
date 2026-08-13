@@ -266,7 +266,7 @@ function renderPersonButtons(target, mode){
   const selected = mode==="quick" ? selectedQuick : mode==="batch" ? selectedBatch : selectedModal;
   container.innerHTML = people.map(p=>`
     <button class="person-btn ${Number(selected)===Number(p.id)?"selected":""}"
-      style="background:${esc(p.color)}" onclick="selectPerson('${mode}',${p.id})">${esc(p.name)}</button>
+      style="background:${esc(p.color)}" data-select-person-mode="${esc(mode)}" data-select-person-id="${p.id}">${esc(p.name)}</button>
   `).join("");
 }
 function renderBatchPersonSelect(){
@@ -327,7 +327,7 @@ function renderNext(){
 }
 function itemHtml(e){
   const d=new Date(e.day+"T12:00:00");
-  return `<div class="item" onclick="openModal(${e.id})">
+  return `<div class="item" data-open-entry="${e.id}">
     <div class="datebox"><b>${d.getDate()}</b><span>${monthShort(d)}</span></div>
     <div><div class="who"><span class="dot" style="background:${esc(e.color)}"></span>${esc(e.person)}</div>
     <div class="note">${weekdayShort(d)}${entryTimeLabel(e)?" · "+esc(entryTimeLabel(e)):""}${e.note?" · "+esc(e.note):""}</div></div>
@@ -345,7 +345,7 @@ function entryContinuesNextDay(e){
 function continuationItemHtml(e, day){
   const d=new Date(day+"T12:00:00");
   const from=formatIsoDate(e.day);
-  return `<div class="item continuation-item" onclick="openModal(${e.id})">
+  return `<div class="item continuation-item" data-open-entry="${e.id}">
     <div class="datebox continuation-date"><b>${d.getDate()}</b><span>${monthShort(d)}</span></div>
     <div><div class="who"><span class="dot" style="background:${esc(e.color)}"></span>${esc(e.person)} <span class="continuation-badge">Fortsetzung</span></div>
     <div class="note">${weekdayShort(d)} · bis ${esc(e.end_time)} · vom ${esc(from)}${e.note?" · "+esc(e.note):""}</div></div>
@@ -547,11 +547,11 @@ function renderYear(){
       const weekend=d.getDay()===0||d.getDay()===6;
       const fill=e?`<div class="entry-fill" style="background:${esc(e.color)}"><span>${esc(e.person)}</span></div>`:"";
       const continuationTitle=continuation?`Fortsetzung ${continuation.person} vom ${formatDateValue(continuation.day)} bis ${continuation.end_time}`:"";
-      const continuationFill=continuation?`<button type="button" class="year-continuation" style="background:${esc(continuation.color)}" title="${esc(continuationTitle)}" aria-label="${esc(continuationTitle)}" onclick="event.stopPropagation();openModal(${continuation.id})"><span>↳ ${esc(continuation.person)} · bis ${esc(continuation.end_time)}</span></button>`:"";
+      const continuationFill=continuation?`<button type="button" class="year-continuation" style="background:${esc(continuation.color)}" title="${esc(continuationTitle)}" aria-label="${esc(continuationTitle)}" data-open-entry="${continuation.id}"><span>↳ ${esc(continuation.person)} · bis ${esc(continuation.end_time)}</span></button>`:"";
       const markTitle=dayMarks.map(p=>`${periodKindName(p.kind)}: ${p.label}`).join(" · ");
       const rail=dayMarks.length?`<div class="period-rail" title="${esc(markTitle)}">${dayMarks.map(p=>`<span class="period-segment" style="background:${esc(p.color)}"></span>`).join("")}</div>`:"";
       const cellClass=[weekend?"weekend":"",dayMarks.length?"has-period":"",continuation?"has-continuation":""].filter(Boolean).join(" ");
-      out+=`<td class="${cellClass}" onclick="${e?`openModal(${e.id})`:`prefillDate('${iso}')`}"><div class="year-cell-content">${fill}${continuationFill}${rail}</div></td>`;
+      out+=`<td class="${cellClass}" ${e?`data-open-entry="${e.id}"`:`data-prefill-date="${iso}"`}><div class="year-cell-content">${fill}${continuationFill}${rail}</div></td>`;
     }
     out+=`<td class="day-repeat">${day}</td></tr>`;
   }
@@ -694,12 +694,12 @@ function renderPeopleSettings(){
   qs("#peopleSettings").innerHTML=people.map(p=>{
     const subtitle=p.ical_title?esc(p.ical_title):'<span class="person-title-default">globaler Kalendertitel</span>';
     return `<div class="person-compact-card">
-      <button class="person-compact-main" type="button" onclick="openPersonEditor(${p.id})" aria-label="${esc(p.name)} bearbeiten">
+      <button class="person-compact-main" type="button" data-person-edit="${p.id}" aria-label="${esc(p.name)} bearbeiten">
         <span class="person-color-dot" style="background:${esc(p.color)}"></span>
         <span class="person-compact-text"><strong>${esc(p.name)}</strong><small>${subtitle}</small></span>
         <span class="person-edit-mark">Bearbeiten</span>
       </button>
-      <button class="person-delete-btn" type="button" onclick="event.stopPropagation();deletePerson(${p.id})" aria-label="${esc(p.name)} löschen">×</button>
+      <button class="person-delete-btn" type="button" data-person-delete="${p.id}" aria-label="${esc(p.name)} löschen">×</button>
     </div>`;
   }).join("");
 }
@@ -739,7 +739,7 @@ function renderPeriodSettings(){
   box.innerHTML=listedPeriods.length?listedPeriods.map(p=>{
     const same=p.start_day===p.end_day;
     const range=same?p.start_day:`${p.start_day} - ${p.end_day}`;
-    return `<div class="period-item"><span class="bar-swatch large" style="background:${esc(p.color)}"></span><div><b>${esc(p.label)}</b><div class="small">${periodKindName(p.kind)} · ${esc(range)}${p.source==="ics"?" · ICS":""}</div></div><button class="mini danger" onclick="deletePeriod(${p.id})">×</button></div>`;
+    return `<div class="period-item"><span class="bar-swatch large" style="background:${esc(p.color)}"></span><div><b>${esc(p.label)}</b><div class="small">${periodKindName(p.kind)} · ${esc(range)}${p.source==="ics"?" · ICS":""}</div></div><button class="mini danger" type="button" data-period-delete="${p.id}">×</button></div>`;
   }).join(""):'<div class="small">Noch keine Ferien oder Feiertage erfasst.</div>';
   applyOnlineState();
 }
@@ -1014,6 +1014,56 @@ async function registerPwa(){
 
 window.addEventListener("offline",()=>{applyOnlineState();toast("Offline - Änderungen sind deaktiviert");});
 window.addEventListener("online",()=>{applyOnlineState();refreshAfterReconnect();});
+
+// CSP-safe UI actions: no inline onclick handlers are used in the static GitHub Pages PWA.
+document.addEventListener("click",e=>{
+  const nav=e.target.closest(".navbtn[data-page]");
+  if(nav){showPage(nav.dataset.page);return;}
+
+  const show=e.target.closest('[data-action="show-page"]');
+  if(show){showPage(show.dataset.pageTarget);return;}
+
+  const open=e.target.closest('[data-action="open-modal"]');
+  if(open){openModal();return;}
+
+  const action=e.target.closest("[data-action]")?.dataset.action;
+  if(action==="close-modal"){closeModal();return;}
+  if(action==="close-export-people"){closeExportPeopleModal();return;}
+  if(action==="close-year-months"){closeYearMonthsModal();return;}
+  if(action==="close-batch"){closeBatchModal();return;}
+  if(action==="close-person-editor"){closePersonEditor();return;}
+  if(action==="close-connection"){closeConnectionSettings();return;}
+
+  const backdrop=e.target.closest("[data-backdrop-close]");
+  if(backdrop && e.target===backdrop){
+    const kind=backdrop.dataset.backdropClose;
+    if(kind==="modal") closeModal();
+    else if(kind==="export-people") closeExportPeopleModal();
+    else if(kind==="year-months") closeYearMonthsModal();
+    else if(kind==="batch") closeBatchModal();
+    else if(kind==="person-editor") closePersonEditor();
+    else if(kind==="connection") closeConnectionSettings();
+    return;
+  }
+
+  const person=e.target.closest("[data-select-person-id]");
+  if(person){selectPerson(person.dataset.selectPersonMode,Number(person.dataset.selectPersonId));return;}
+
+  const deletePersonButton=e.target.closest("[data-person-delete]");
+  if(deletePersonButton){e.stopPropagation();deletePerson(Number(deletePersonButton.dataset.personDelete));return;}
+
+  const editPersonButton=e.target.closest("[data-person-edit]");
+  if(editPersonButton){openPersonEditor(Number(editPersonButton.dataset.personEdit));return;}
+
+  const periodDeleteButton=e.target.closest("[data-period-delete]");
+  if(periodDeleteButton){deletePeriod(Number(periodDeleteButton.dataset.periodDelete));return;}
+
+  const entry=e.target.closest("[data-open-entry]");
+  if(entry){e.stopPropagation();openModal(Number(entry.dataset.openEntry));return;}
+
+  const dateCell=e.target.closest("[data-prefill-date]");
+  if(dateCell){prefillDate(dateCell.dataset.prefillDate);return;}
+});
 document.addEventListener("click",e=>{
   const pdfButton=e.target.closest(".pdf-share-button");
   if(pdfButton){

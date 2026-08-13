@@ -1,6 +1,6 @@
-const VERSION = "betreuung-pages-v40";
+const VERSION = "betreuung-pages-v41";
 const CACHE = `${VERSION}-static`;
-const ASSETS = ["./","./index.html","./app.css?v=40","./app.js?v=40","./manifest.webmanifest","./favicon-v17.png","./apple-touch-icon-v17.png","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./offline.html"];
+const ASSETS = ["./","./index.html","./app.css?v=41","./app.js?v=41","./manifest.webmanifest","./favicon-v17.png","./apple-touch-icon-v17.png","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./offline.html"];
 self.addEventListener("install",e=>e.waitUntil((async()=>{const c=await caches.open(CACHE);for(const u of ASSETS){try{const r=await fetch(u,{cache:"reload"});if(r.ok)await c.put(u,r);}catch(_e){}}await self.skipWaiting();})()));
 self.addEventListener("activate",e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k!==CACHE)await caches.delete(k);await self.clients.claim();})()));
 self.addEventListener("fetch",e=>{const r=e.request;if(r.method!=="GET")return;const u=new URL(r.url);if(u.origin!==self.location.origin)return;if(r.mode==="navigate"){e.respondWith(fetch(r).then(x=>{const c=x.clone();caches.open(CACHE).then(k=>k.put("./index.html",c));return x;}).catch(async()=>await caches.match("./index.html")||await caches.match("./offline.html")));return;}e.respondWith(caches.match(r).then(c=>c||fetch(r).then(x=>{if(x.ok)caches.open(CACHE).then(k=>k.put(r,x.clone()));return x;})));});
