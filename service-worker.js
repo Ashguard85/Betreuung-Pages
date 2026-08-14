@@ -1,4 +1,4 @@
-const APP_VERSION = "46";
+const APP_VERSION = "47";
 const VERSION = `betreuung-pages-v${APP_VERSION}`;
 const SHELL_CACHE = `${VERSION}-shell`;
 const CACHE_PREFIX = "betreuung-pages-v";
@@ -6,8 +6,8 @@ const INDEX_URL = "./index.html";
 
 const ESSENTIAL_SHELL = [
   "./index.html",
-  "./app.css?v=46",
-  "./app.js?v=46",
+  "./app.css?v=47",
+  "./app.js?v=47",
   "./manifest.webmanifest"
 ];
 
@@ -47,10 +47,10 @@ async function precacheShell() {
 
 async function needsOneTimeCacheRecovery(){
   const keys=await caches.keys();
-  // v43-v45 could keep the installed Home-Screen PWA on an old cache-first shell
+  // v43-v46 could keep the installed Home-Screen PWA on an old cache-first shell
   // indefinitely on iOS. v46 activates itself once when migrating from those
   // versions. It still does NOT claim or reload the currently open client.
-  return keys.some(key => /^betreuung-pages-v(?:43|44|45)-shell$/.test(key));
+  return keys.some(key => /^betreuung-pages-v(?:43|44|45|46)-shell$/.test(key));
 }
 
 self.addEventListener("install", event => {
@@ -95,6 +95,15 @@ self.addEventListener("fetch", event => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
+    // Only the real app entry point may fall back to index.html.
+    // A direct navigation to service-worker.js, manifest.webmanifest, icons, etc.
+    // must stay a normal network request instead of being rewritten to the app shell.
+    const scopeUrl = new URL(self.registration.scope);
+    const scopePath = scopeUrl.pathname.endsWith("/") ? scopeUrl.pathname : `${scopeUrl.pathname}/`;
+    const relativePath = url.pathname.startsWith(scopePath) ? url.pathname.slice(scopePath.length) : null;
+    const isAppEntry = relativePath === "" || relativePath === "index.html";
+    if (!isAppEntry) return;
+
     event.respondWith((async () => {
       // Cache-first navigation keeps one coherent frontend version alive even when
       // GitHub Pages is temporarily unavailable.

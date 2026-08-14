@@ -1,3 +1,10 @@
+# v47 – Navigation-/Service-Worker-Fix
+
+- Direkte Aufrufe von `service-worker.js`, `manifest.webmanifest`, Icons und anderen Dateien werden nicht mehr fälschlich auf `index.html` umgeschrieben.
+- Nur die eigentliche App-Start-URL (`/` bzw. `index.html` innerhalb des Pages-Scopes) verwendet den Offline-App-Shell-Fallback.
+- `version.txt` liefert die veröffentlichte Pages-Version als einfache Diagnose.
+- Einmalige Cache-Recovery wurde auf v43–v46 erweitert.
+
 # v46 – iOS Cache-Recovery / sichere Folgeupdates
 
 **Ursache des Safari/PWA-Unterschieds:** Seit v43 wurde die Navigation der installierten PWA absichtlich cache-first. Auf iOS konnte dadurch ein alter aktiver Worker mitsamt v43/v44/v45-App-Shell weiterlaufen, während Safari bereits die aktuelle Hosting-Version verwendete. Cross-Origin-API-Requests wurden vom Worker nie abgefangen; betroffen war die geladene Frontend-Version selbst.
