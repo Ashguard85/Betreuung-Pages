@@ -424,6 +424,8 @@
     <div class="connection-runtime small">
       <div><b>Aktueller Origin:</b> <code id="pwaRuntimeOrigin"></code></div>
       <div><b>Modus:</b> <span id="pwaRuntimeMode"></span></div>
+      <div><b>Geladene PWA:</b> <span id="pwaConnectionAppVersion">v48</span></div>
+      <div><b>Aktiver Service Worker:</b> <span id="pwaConnectionSwVersion">wird geprüft …</span></div>
     </div>
     <label class="label" for="pwaServer">Datenserver</label>
     <input id="pwaServer" class="input" type="url" inputmode="url" autocomplete="url" placeholder="https://betreuung.example.net">
@@ -435,6 +437,7 @@
     <input id="pwaClientSecret" class="input" type="password" autocomplete="off" autocapitalize="none" spellcheck="false">
     <p id="pwaConnectionStatus" class="small connection-status"></p>
     <p class="small connection-hint">Beim Ersetzen eines Secrets wird der neue Zugang direkt geprüft. Ein App-Neustart ist danach nicht nötig.</p>
+    <button id="pwaCheckUpdateConnection" class="secondary full" type="button">PWA-Update prüfen</button>
     <div class="connection-actions">
       <button id="pwaTestConnection" class="secondary" type="button">Verbindung testen</button>
       <button id="pwaSaveConnection" class="primary" type="button">Speichern</button>
@@ -444,6 +447,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="./app.js?v=47"></script>
+<script src="./app.js?v=48"></script>
 </body>
 </html>

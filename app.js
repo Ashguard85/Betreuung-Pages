@@ -78,6 +78,7 @@ function openConnectionSettings(required=false){
   const modeEl=document.querySelector("#pwaRuntimeMode");
   if(originEl) originEl.textContent=location.origin;
   if(modeEl) modeEl.textContent=(window.matchMedia?.("(display-mode: standalone)")?.matches || navigator.standalone===true)?"Home-Screen-PWA":"Browser/Safari";
+  updateConnectionVersionInfo();
   document.querySelector("#connectionClose").style.visibility=pwaConnectionRequired?"hidden":"visible";
   setConnectionStatus(pwaConnectionRequired?"Server und Cloudflare Service Token einmalig eintragen.":"");
   back.classList.add("open");document.body.classList.add("modal-open");
@@ -167,6 +168,24 @@ async function activateSavedConnection(candidate){
 async function setupConnectionUi(){
   await readConnection();
   document.querySelector("#connectionSettings")?.addEventListener("click",()=>openConnectionSettings(false));
+  document.querySelector("#pwaCheckUpdateConnection")?.addEventListener("click",async()=>{
+    try{
+      setConnectionStatus("PWA-Update wird geprüft …");
+      if(!pwaRegistration){
+        await registerPwa();
+      }
+      await checkPwaUpdate(true);
+      await new Promise(resolve=>setTimeout(resolve,900));
+      const waiting=pwaRegistration?.waiting || pwaWaitingWorker;
+      if(waiting){
+        const version=await queryWorkerVersion(waiting);
+        setConnectionStatus(`Neue PWA${version?` v${version}`:""} ist vollständig geladen. PWA komplett schließen und erneut öffnen.`,"ok");
+      }else{
+        await updateConnectionVersionInfo();
+        setConnectionStatus(`Aktuell geladen: v${PWA_APP_VERSION}. Kein vollständig geladenes Update wartet.`,"ok");
+      }
+    }catch(e){setConnectionStatus(e?.message||"Update-Prüfung fehlgeschlagen","error");}
+  });
   document.querySelector("#pwaTestConnection")?.addEventListener("click",async()=>{
     try{
       const c=connectionFromForm();
@@ -1078,7 +1097,7 @@ async function shareServerFile(url, fallbackName, mimeType, preparing="Datei wir
 }
 
 
-const PWA_APP_VERSION = "47";
+const PWA_APP_VERSION = "48";
 const PWA_UPDATE_RELOAD_KEY = "betreuung-pwa-update-reload";
 let pwaRegistration = null;
 let pwaWaitingWorker = null;
@@ -1135,6 +1154,16 @@ function queryWorkerVersion(worker){
     try{worker.postMessage({type:"GET_VERSION"},[channel.port2]);}
     catch(_error){clearTimeout(timer);resolve("");}
   });
+}
+
+async function updateConnectionVersionInfo(){
+  const appEl=qs("#pwaConnectionAppVersion");
+  const swEl=qs("#pwaConnectionSwVersion");
+  if(appEl) appEl.textContent=`v${PWA_APP_VERSION}`;
+  if(swEl){
+    const version=await queryWorkerVersion(navigator.serviceWorker?.controller);
+    swEl.textContent=version?`v${version}`:(navigator.serviceWorker?.controller?"aktiv, Version unbekannt":"noch nicht aktiv");
+  }
 }
 
 async function announceWaitingWorker(worker){
@@ -1248,6 +1277,7 @@ async function registerPwa(){
   try{
     const reg=await navigator.serviceWorker.register("./service-worker.js",{scope:"./",updateViaCache:"none"});
     pwaRegistration=reg;
+    updateConnectionVersionInfo();
     // A fully downloaded update left waiting from the previous session is safe to
     // activate now: startup has not loaded data or accepted user input yet.
     if(reg.waiting && navigator.serviceWorker.controller){
