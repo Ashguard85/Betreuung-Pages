@@ -134,7 +134,7 @@
       <details class="card settings-disclosure">
         <summary>App & Updates</summary>
         <div class="settings-disclosure-body">
-          <div class="row"><span>App-Version</span><span class="spacer"></span><b id="pwaAppVersion">v44</b></div>
+          <div class="row"><span>App-Version</span><span class="spacer"></span><b id="pwaAppVersion">v45</b></div>
           <p id="pwaUpdateStatus" class="small">Updates werden im Hintergrund geprüft.</p>
           <button id="pwaApplyUpdate" class="secondary full topgap" type="button" hidden>Jetzt aktualisieren</button>
           <p class="small">Neue Versionen werden zuerst vollständig lokal geladen. Die laufende Sitzung bleibt unverändert; automatisch gewechselt wird erst nach einem sicheren Neustart oder bewusst über den Button.</p>
@@ -421,6 +421,10 @@
   <div class="modal connection-modal" role="dialog" aria-modal="true" aria-labelledby="connectionTitle">
     <div class="row"><h3 id="connectionTitle">Server verbinden</h3><span class="spacer"></span><button id="connectionClose" class="close" type="button" data-action="close-connection">✕</button></div>
     <p class="small">Die Zugangsdaten werden nur in dieser PWA auf diesem Gerät gespeichert und nicht zu GitHub übertragen.</p>
+    <div class="connection-runtime small">
+      <div><b>Aktueller Origin:</b> <code id="pwaRuntimeOrigin"></code></div>
+      <div><b>Modus:</b> <span id="pwaRuntimeMode"></span></div>
+    </div>
     <label class="label" for="pwaServer">Datenserver</label>
     <input id="pwaServer" class="input" type="url" inputmode="url" autocomplete="url" placeholder="https://betreuung.example.net">
     <div class="space"></div>
@@ -440,6 +444,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="./app.js?v=44"></script>
+<script src="./app.js?v=45"></script>
 </body>
 </html>

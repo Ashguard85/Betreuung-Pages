@@ -1,4 +1,4 @@
-const APP_VERSION = "44";
+const APP_VERSION = "45";
 const VERSION = `betreuung-pages-v${APP_VERSION}`;
 const SHELL_CACHE = `${VERSION}-shell`;
 const CACHE_PREFIX = "betreuung-pages-v";
@@ -6,8 +6,8 @@ const INDEX_URL = "./index.html";
 
 const ESSENTIAL_SHELL = [
   "./index.html",
-  "./app.css?v=44",
-  "./app.js?v=44",
+  "./app.css?v=45",
+  "./app.js?v=45",
   "./manifest.webmanifest"
 ];
 

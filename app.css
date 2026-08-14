@@ -563,3 +563,5 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 .connection-status.ok{color:#1f6f51}
 .connection-status.error{color:#9d2d38}
 @media(max-width:520px){.connection-actions{grid-template-columns:1fr}}
+
+.connection-runtime{margin:.55rem 0 .8rem;padding:.6rem .7rem;border:1px solid var(--line,#d8ddd8);border-radius:10px;background:rgba(0,0,0,.025);overflow:hidden}.connection-runtime code{overflow-wrap:anywhere;word-break:break-word;white-space:normal;font-size:.9em}

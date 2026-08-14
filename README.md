@@ -1,6 +1,6 @@
-# Betreuung PWA – GitHub Pages v44
+# Betreuung PWA – GitHub Pages v45
 
-## v44 – Service-Token sicher ersetzen
+## v45 – Service-Token sicher ersetzen
 
 - Der Verbindungstest im Setup läuft jetzt unabhängig vom globalen Online-/Backend-Status der App. Ein abgelaufener oder falscher alter Token kann dadurch den Test eines neuen Tokens nicht mehr beeinflussen.
 - Der Test verwendet die im Dialog eingegebene Server-URL, Client ID und das neue Client Secret direkt.
@@ -55,3 +55,8 @@ GitHub-Pages-URL in Safari öffnen → Teilen → Zum Home-Bildschirm → Als We
 - Token bei Geräteverlust in Cloudflare widerrufen.
 - Repository möglichst klein halten und keine Drittanbieter-Skripte ergänzen.
 - Die eigentliche Docker-App bleibt hinter Cloudflare Access.
+
+
+## v45: iPhone-PWA / Cloudflare Diagnose
+
+Der Verbindungsdialog zeigt den tatsächlichen `location.origin` und ob die App als Home-Screen-PWA läuft. Cloudflare-Preflight sollte bevorzugt mit **Bypass OPTIONS requests to origin** zum Flask-Backend durchgereicht werden. Das Backend v45 unterstützt `PWA_ALLOWED_ORIGINS` als kommaseparierte Liste; `PWA_ALLOWED_ORIGIN` bleibt kompatibel.

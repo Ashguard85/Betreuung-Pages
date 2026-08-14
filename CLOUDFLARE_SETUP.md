@@ -5,7 +5,9 @@ Für die Access Application deines Datenservers (Beispiel `https://betreuung.exa
 - **Allow** für deinen normalen OTP-Zugang
 - **Service Auth** für das jeweilige iPhone-Service-Token
 
-Da diese PWA von einer anderen Domain kommt, muss Cloudflare den anonymen CORS-Preflight am Edge beantworten. Verwende als erlaubten Origin ausschließlich deine GitHub-Pages-Custom-Domain, z. B.:
+Da diese PWA von einer anderen Domain kommt, entsteht ein CORS-Preflight. Für iPhone/Home-Screen-PWAs ist die robusteste Variante, in der Access Application unter **Advanced settings → CORS** `Bypass OPTIONS requests to origin` zu aktivieren. Flask prüft den Origin danach selbst. Das vermeidet Unterschiede zwischen einer Browser-Sitzung und einer installierten PWA.
+
+Die PWA zeigt im Verbindungsdialog ihren **aktuellen Origin** an. Genau dieser Origin muss im Backend erlaubt sein.
 
 ```text
 https://betreuung2.example.net
@@ -29,12 +31,20 @@ Exponierte Response-Header:
 Content-Disposition, Content-Type
 ```
 
-Im Portainer-Container exakt denselben Origin setzen:
+Im Portainer-Container den angezeigten Origin setzen:
 
 ```text
-PWA_ALLOWED_ORIGIN=https://betreuung2.example.net
+PWA_ALLOWED_ORIGINS=https://betreuung2.example.net
 AUTH_ENABLED=false
 ```
+
+Falls eine bereits installierte PWA noch von einem älteren Host stammt, können mehrere **explizite** Origins kommasepariert erlaubt werden:
+
+```text
+PWA_ALLOWED_ORIGINS=https://betreuung2.example.net,https://ashguard85.github.io
+```
+
+`PWA_ALLOWED_ORIGIN` bleibt aus Kompatibilitätsgründen weiterhin unterstützt.
 
 `AUTH_ENABLED=false` ist wichtig, weil Cloudflare Access hier die Authentifizierung übernimmt. Andernfalls würde Flask zusätzlich seine eigene Login-Session verlangen.
 

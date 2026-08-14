@@ -51,7 +51,7 @@ function cloudflareHeaders(){
 async function pwaFetch(path, options={}){
   const headers=new Headers(options.headers||{});
   for(const [k,v] of Object.entries(cloudflareHeaders())) headers.set(k,v);
-  const init={...options,headers,mode:"cors",cache:options.cache||"no-store"};
+  const init={...options,headers,mode:"cors",cache:options.cache||"no-store",credentials:options.credentials||"same-origin"};
   const method=String(init.method||"GET").toUpperCase();
   const write=!(["GET","HEAD","OPTIONS"].includes(method));
   if(write) beginPwaWrite();
@@ -74,6 +74,10 @@ function openConnectionSettings(required=false){
   document.querySelector("#pwaServer").value=pwaConnection.server||"";
   document.querySelector("#pwaClientId").value=pwaConnection.clientId||"";
   document.querySelector("#pwaClientSecret").value=pwaConnection.clientSecret||"";
+  const originEl=document.querySelector("#pwaRuntimeOrigin");
+  const modeEl=document.querySelector("#pwaRuntimeMode");
+  if(originEl) originEl.textContent=location.origin;
+  if(modeEl) modeEl.textContent=(window.matchMedia?.("(display-mode: standalone)")?.matches || navigator.standalone===true)?"Home-Screen-PWA":"Browser/Safari";
   document.querySelector("#connectionClose").style.visibility=pwaConnectionRequired?"hidden":"visible";
   setConnectionStatus(pwaConnectionRequired?"Server und Cloudflare Service Token einmalig eintragen.":"");
   back.classList.add("open");document.body.classList.add("modal-open");
@@ -119,12 +123,12 @@ async function testConnection(candidate){
         headers,
         mode:"cors",
         cache:"no-store",
-        credentials:"omit",
+        credentials:"same-origin",
         signal:controller.signal
       });
     }catch(error){
       if(error?.name==="AbortError") throw new Error("Zeitüberschreitung beim Datenserver. Serveradresse und Cloudflare Tunnel prüfen.");
-      throw new Error("Keine Verbindung zum Datenserver. Prüfe Serveradresse, PWA_ALLOWED_ORIGIN sowie die Cloudflare-Regeln für OPTIONS und Service Auth.");
+      throw new Error(`Keine Verbindung zum Datenserver. Diese PWA sendet vom Origin ${location.origin}. Prüfe diesen Wert in PWA_ALLOWED_ORIGINS sowie Cloudflare OPTIONS/Service Auth.`);
     }
     const type=response.headers.get("content-type")||"";
     if(type.toLowerCase().includes("application/json")){
@@ -1074,7 +1078,7 @@ async function shareServerFile(url, fallbackName, mimeType, preparing="Datei wir
 }
 
 
-const PWA_APP_VERSION = "44";
+const PWA_APP_VERSION = "45";
 const PWA_UPDATE_RELOAD_KEY = "betreuung-pwa-update-reload";
 let pwaRegistration = null;
 let pwaWaitingWorker = null;
