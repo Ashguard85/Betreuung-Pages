@@ -1,4 +1,17 @@
-# Betreuung PWA – GitHub Pages v45
+# v46 – iOS Cache-Recovery / sichere Folgeupdates
+
+**Ursache des Safari/PWA-Unterschieds:** Seit v43 wurde die Navigation der installierten PWA absichtlich cache-first. Auf iOS konnte dadurch ein alter aktiver Worker mitsamt v43/v44/v45-App-Shell weiterlaufen, während Safari bereits die aktuelle Hosting-Version verwendete. Cross-Origin-API-Requests wurden vom Worker nie abgefangen; betroffen war die geladene Frontend-Version selbst.
+
+**v46 behebt das so:**
+- Einmalige Self-Healing-Aktivierung beim Upgrade von v43-v45 auf v46.
+- Keine `clients.claim()`-Übernahme und kein automatischer Reload mitten in der laufenden Sitzung.
+- Beim nächsten Start wird v46 aus seinem eigenen atomaren Shell-Cache geladen.
+- Künftige vollständig heruntergeladene Updates werden beim nächsten sicheren App-Start automatisch aktiviert.
+- `Jetzt aktualisieren` aktiviert kontrolliert und lädt höchstens einmal neu.
+- Statische Dateien werden nur noch aus dem Cache der aktiven Version gelesen; alte Versions-Caches können nicht versehentlich Assets liefern.
+- Cross-Origin-Backend-Requests bleiben vollständig außerhalb des Service Workers.
+
+# Betreuung PWA – GitHub Pages v46
 
 ## v45 – Service-Token sicher ersetzen
 

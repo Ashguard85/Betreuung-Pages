@@ -1,4 +1,4 @@
-const APP_VERSION = "45";
+const APP_VERSION = "46";
 const VERSION = `betreuung-pages-v${APP_VERSION}`;
 const SHELL_CACHE = `${VERSION}-shell`;
 const CACHE_PREFIX = "betreuung-pages-v";
@@ -6,8 +6,8 @@ const INDEX_URL = "./index.html";
 
 const ESSENTIAL_SHELL = [
   "./index.html",
-  "./app.css?v=45",
-  "./app.js?v=45",
+  "./app.css?v=46",
+  "./app.js?v=46",
   "./manifest.webmanifest"
 ];
 
@@ -45,9 +45,19 @@ async function precacheShell() {
   }
 }
 
+async function needsOneTimeCacheRecovery(){
+  const keys=await caches.keys();
+  // v43-v45 could keep the installed Home-Screen PWA on an old cache-first shell
+  // indefinitely on iOS. v46 activates itself once when migrating from those
+  // versions. It still does NOT claim or reload the currently open client.
+  return keys.some(key => /^betreuung-pages-v(?:43|44|45)-shell$/.test(key));
+}
+
 self.addEventListener("install", event => {
-  // Deliberately no skipWaiting(): the currently running app keeps its version.
-  event.waitUntil(precacheShell());
+  event.waitUntil((async()=>{
+    await precacheShell();
+    if(await needsOneTimeCacheRecovery()) await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", event => {
@@ -105,7 +115,8 @@ self.addEventListener("fetch", event => {
   }
 
   event.respondWith((async () => {
-    const cached = await caches.match(request);
+    const cache = await caches.open(SHELL_CACHE);
+    const cached = await cache.match(request);
     if (cached) return cached;
     try {
       return await fetch(request);
