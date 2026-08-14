@@ -1,7 +1,15 @@
-# Betreuung PWA – GitHub Pages v42
+# Betreuung PWA – GitHub Pages v43
 
-Diese Version behebt die Navigation unter einer strikten Content-Security-Policy. Inline-`onclick`-Handler wurden entfernt und durch CSP-sichere Event-Listener ersetzt. Der Service-Worker-Cache wurde auf v42 erhöht.
+## Robuste Offline-/Update-Architektur
 
+- Die komplette statische App-Shell (`index.html`, JS, CSS, Manifest, Icons und Offline-Seite) wird versioniert lokal gecacht.
+- Navigation verwendet die aktive App-Shell **cache-first**. Ein temporärer GitHub-Pages-Ausfall verhindert deshalb nach erfolgreicher Installation den App-Start nicht.
+- API-Aufrufe bleiben unabhängig davon normale HTTPS-Aufrufe zum konfigurierten Docker-Backend. Ist das Backend nicht erreichbar, bleibt die App-Shell offen und Schreib-/Serveraktionen werden deaktiviert; die Verbindung wird periodisch erneut geprüft.
+- Neue Service Worker laden die nächste App-Shell vollständig im Hintergrund, bleiben danach aber `waiting`. Es gibt **kein automatisches `skipWaiting()` und kein `clients.claim()`**.
+- Ein laufender Client wird nicht automatisch neu geladen. Im Setup erscheint bei einem Update „Neue Version verfügbar“ plus „Jetzt aktualisieren“.
+- Der Button aktiviert nur nach Benutzeraktion und blockiert bei laufenden Schreib-/Importvorgängen bzw. offenen Dialogen. Ein `controllerchange` darf nur nach dieser bewussten Aktion genau einen Reload auslösen.
+- Ohne Button wird die neue Version nach dem normalen Schließen/Neustart der PWA aktiv, sobald keine alte Client-Sitzung mehr läuft.
+- IndexedDB mit Server/Cloudflare-Zugangsdaten wird nicht verändert oder gelöscht.
 
 Dieses Repository enthält **nur das statische Frontend**. Es enthält keine SQLite-Daten, keine Flask-App und keine Cloudflare-Zugangsdaten.
 

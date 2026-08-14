@@ -1,6 +1,116 @@
-const VERSION = "betreuung-pages-v42";
-const CACHE = `${VERSION}-static`;
-const ASSETS = ["./","./index.html","./app.css?v=42","./app.js?v=42","./manifest.webmanifest","./favicon-v17.png","./apple-touch-icon-v17.png","./icon-192.png","./icon-512.png","./icon-maskable-512.png","./offline.html"];
-self.addEventListener("install",e=>e.waitUntil((async()=>{const c=await caches.open(CACHE);for(const u of ASSETS){try{const r=await fetch(u,{cache:"reload"});if(r.ok)await c.put(u,r);}catch(_e){}}await self.skipWaiting();})()));
-self.addEventListener("activate",e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k!==CACHE)await caches.delete(k);await self.clients.claim();})()));
-self.addEventListener("fetch",e=>{const r=e.request;if(r.method!=="GET")return;const u=new URL(r.url);if(u.origin!==self.location.origin)return;if(r.mode==="navigate"){e.respondWith(fetch(r).then(x=>{const c=x.clone();caches.open(CACHE).then(k=>k.put("./index.html",c));return x;}).catch(async()=>await caches.match("./index.html")||await caches.match("./offline.html")));return;}e.respondWith(caches.match(r).then(c=>c||fetch(r).then(x=>{if(x.ok)caches.open(CACHE).then(k=>k.put(r,x.clone()));return x;})));});
+const APP_VERSION = "43";
+const VERSION = `betreuung-pages-v${APP_VERSION}`;
+const SHELL_CACHE = `${VERSION}-shell`;
+const CACHE_PREFIX = "betreuung-pages-v";
+const INDEX_URL = "./index.html";
+
+const ESSENTIAL_SHELL = [
+  "./index.html",
+  "./app.css?v=43",
+  "./app.js?v=43",
+  "./manifest.webmanifest"
+];
+
+const OPTIONAL_SHELL = [
+  "./favicon-v17.png",
+  "./apple-touch-icon-v17.png",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-maskable-512.png",
+  "./icon.svg",
+  "./offline.html"
+];
+
+async function fetchFresh(url) {
+  const response = await fetch(url, {cache: "reload", credentials: "same-origin"});
+  if (!response.ok) throw new Error(`Precache failed: ${url} (${response.status})`);
+  return response;
+}
+
+async function precacheShell() {
+  const cache = await caches.open(SHELL_CACHE);
+  // Essential files are atomic: if one is missing, keep the old worker active.
+  for (const url of ESSENTIAL_SHELL) {
+    const response = await fetchFresh(url);
+    await cache.put(url, response);
+  }
+  // Icons/offline page are useful but must not make an otherwise valid update fail.
+  for (const url of OPTIONAL_SHELL) {
+    try {
+      const response = await fetchFresh(url);
+      await cache.put(url, response);
+    } catch (error) {
+      console.warn("Optional PWA asset could not be cached", url, error);
+    }
+  }
+}
+
+self.addEventListener("install", event => {
+  // Deliberately no skipWaiting(): the currently running app keeps its version.
+  event.waitUntil(precacheShell());
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil((async () => {
+    for (const key of await caches.keys()) {
+      if (key.startsWith(CACHE_PREFIX) && key !== SHELL_CACHE) await caches.delete(key);
+    }
+    // Deliberately no clients.claim(): open clients switch only on a safe reload/restart.
+  })());
+});
+
+self.addEventListener("message", event => {
+  const data = event.data || {};
+  if (data.type === "GET_VERSION") {
+    event.ports?.[0]?.postMessage({version: APP_VERSION});
+    return;
+  }
+  // Old versions used a generic SKIP_WAITING message. Ignore that message so the
+  // first migration to v43 is safe as well. Only an explicit user action may activate.
+  if (data.type === "ACTIVATE_UPDATE" && data.userInitiated === true) {
+    self.skipWaiting();
+  }
+});
+
+async function cachedShellResponse() {
+  const cache = await caches.open(SHELL_CACHE);
+  return (await cache.match(INDEX_URL)) || (await cache.match("./"));
+}
+
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  if (request.mode === "navigate") {
+    event.respondWith((async () => {
+      // Cache-first navigation keeps one coherent frontend version alive even when
+      // GitHub Pages is temporarily unavailable.
+      const shell = await cachedShellResponse();
+      if (shell) return shell;
+      try {
+        const response = await fetch(request);
+        if (response.ok) {
+          const cache = await caches.open(SHELL_CACHE);
+          await cache.put(INDEX_URL, response.clone());
+        }
+        return response;
+      } catch (_error) {
+        return (await caches.match("./offline.html")) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  event.respondWith((async () => {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    try {
+      return await fetch(request);
+    } catch (_error) {
+      return Response.error();
+    }
+  })());
+});
