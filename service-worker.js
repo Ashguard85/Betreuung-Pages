@@ -1,4 +1,4 @@
-const APP_VERSION = "43";
+const APP_VERSION = "44";
 const VERSION = `betreuung-pages-v${APP_VERSION}`;
 const SHELL_CACHE = `${VERSION}-shell`;
 const CACHE_PREFIX = "betreuung-pages-v";
@@ -6,8 +6,8 @@ const INDEX_URL = "./index.html";
 
 const ESSENTIAL_SHELL = [
   "./index.html",
-  "./app.css?v=43",
-  "./app.js?v=43",
+  "./app.css?v=44",
+  "./app.js?v=44",
   "./manifest.webmanifest"
 ];
 
@@ -66,7 +66,7 @@ self.addEventListener("message", event => {
     return;
   }
   // Old versions used a generic SKIP_WAITING message. Ignore that message so the
-  // first migration to v43 is safe as well. Only an explicit user action may activate.
+  // first migration to v43/v44 is safe as well. Only an explicit user action may activate.
   if (data.type === "ACTIVATE_UPDATE" && data.userInitiated === true) {
     self.skipWaiting();
   }

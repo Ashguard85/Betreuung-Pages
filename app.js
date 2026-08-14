@@ -85,22 +85,111 @@ function closeConnectionSettings(){
 function connectionFromForm(){
   return {server:normalizeServer(document.querySelector("#pwaServer")?.value),clientId:String(document.querySelector("#pwaClientId")?.value||"").trim(),clientSecret:String(document.querySelector("#pwaClientSecret")?.value||"").trim()};
 }
+function connectionErrorFromResponse(response, bodyText=""){
+  const status=Number(response?.status||0);
+  const type=String(response?.headers?.get?.("content-type")||"").toLowerCase();
+  const raw=String(bodyText||"").trim();
+  if(status===401 || status===403){
+    return new Error("Cloudflare verweigert den Zugriff. Client ID, Client Secret und Service-Auth-Policy prüfen.");
+  }
+  if(status===404) return new Error("Der Datenserver ist erreichbar, aber /api/config wurde nicht gefunden. Backend-URL prüfen.");
+  if(status>=500) return new Error(`Datenserver antwortet mit HTTP ${status}. Bitte Server/Container prüfen.`);
+  if(type.includes("text/html") || /^<!doctype html/i.test(raw) || /^<html/i.test(raw)){
+    return new Error(`Unerwartete HTML-Antwort${status?` (HTTP ${status})`:""}. Meist blockiert Cloudflare Access oder die Backend-URL ist falsch.`);
+  }
+  if(raw && raw.length<=240) return new Error(raw);
+  return new Error(status?`Verbindung fehlgeschlagen (HTTP ${status})`:"Verbindung fehlgeschlagen");
+}
 async function testConnection(candidate){
-  const old=pwaConnection;pwaConnection=candidate;
+  // Deliberately bypass pwaFetch/global connection state: replacing a broken or
+  // expired Service Token must still be testable even while the app considers
+  // the backend offline.
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),12000);
   try{
-    const response=await pwaFetch("/api/config",{headers:{"Accept":"application/json"}});
+    const headers=new Headers({
+      "Accept":"application/json",
+      "CF-Access-Client-ID":candidate.clientId,
+      "CF-Access-Client-Secret":candidate.clientSecret
+    });
+    let response;
+    try{
+      response=await fetch(`${candidate.server}/api/config`,{
+        method:"GET",
+        headers,
+        mode:"cors",
+        cache:"no-store",
+        credentials:"omit",
+        signal:controller.signal
+      });
+    }catch(error){
+      if(error?.name==="AbortError") throw new Error("Zeitüberschreitung beim Datenserver. Serveradresse und Cloudflare Tunnel prüfen.");
+      throw new Error("Keine Verbindung zum Datenserver. Prüfe Serveradresse, PWA_ALLOWED_ORIGIN sowie die Cloudflare-Regeln für OPTIONS und Service Auth.");
+    }
     const type=response.headers.get("content-type")||"";
-    let body=type.includes("json")?await response.json():await response.text();
-    if(!response.ok) throw new Error(body?.error||body||`HTTP ${response.status}`);
-    return body;
-  }finally{pwaConnection=old;}
+    if(type.toLowerCase().includes("application/json")){
+      let body=null;
+      try{body=await response.json();}catch(_e){}
+      if(!response.ok) throw connectionErrorFromResponse(response,body?.error||"");
+      return body||{};
+    }
+    const text=await response.text();
+    if(!response.ok || !type.toLowerCase().includes("json")) throw connectionErrorFromResponse(response,text);
+    return {};
+  }finally{
+    clearTimeout(timeout);
+  }
+}
+async function activateSavedConnection(candidate){
+  await writeConnection(candidate);
+  pwaConnectionRequired=false;
+  setBackendReachable(true);
+  closeConnectionSettings();
+  setConnectionStatus("Verbindung gespeichert.","ok");
+  try{
+    await loadPeople();
+    await loadEntries();
+    await loadPeriods();
+    await loadCalendarSubscriptions();
+    await loadConfig();
+    applyOnlineState();
+    toast("Serververbindung aktualisiert");
+  }catch(error){
+    setBackendReachable(false);
+    applyOnlineState();
+    toast(error?.message||"Verbindung gespeichert, Daten konnten aber noch nicht geladen werden");
+  }
 }
 async function setupConnectionUi(){
   await readConnection();
   document.querySelector("#connectionSettings")?.addEventListener("click",()=>openConnectionSettings(false));
-  document.querySelector("#pwaTestConnection")?.addEventListener("click",async()=>{try{const c=connectionFromForm();if(!connectionComplete(c))throw new Error("Server, Client ID und Client Secret vollständig eingeben");setConnectionStatus("Verbindung wird geprüft …");await testConnection(c);setConnectionStatus("Verbindung erfolgreich.","ok");}catch(e){setConnectionStatus(e.message||"Verbindung fehlgeschlagen","error");}});
-  document.querySelector("#pwaSaveConnection")?.addEventListener("click",async()=>{try{const c=connectionFromForm();if(!connectionComplete(c))throw new Error("Server, Client ID und Client Secret vollständig eingeben");setConnectionStatus("Verbindung wird geprüft …");await testConnection(c);await writeConnection(c);setConnectionStatus("Gespeichert. App wird neu geladen …","ok");pwaConnectionRequired=false;setTimeout(()=>location.reload(),250);}catch(e){setConnectionStatus(e.message||"Speichern fehlgeschlagen","error");}});
-  document.querySelector("#pwaClearConnection")?.addEventListener("click",async()=>{if(!confirm("Gespeicherte Serververbindung auf diesem Gerät löschen?"))return;await clearConnection();location.reload();});
+  document.querySelector("#pwaTestConnection")?.addEventListener("click",async()=>{
+    try{
+      const c=connectionFromForm();
+      if(!connectionComplete(c))throw new Error("Server, Client ID und Client Secret vollständig eingeben");
+      setConnectionStatus("Verbindung wird unabhängig vom aktuellen App-Status geprüft …");
+      await testConnection(c);
+      setConnectionStatus("Verbindung erfolgreich. Der neue Service Token funktioniert.","ok");
+    }catch(e){setConnectionStatus(e.message||"Verbindung fehlgeschlagen","error");}
+  });
+  document.querySelector("#pwaSaveConnection")?.addEventListener("click",async()=>{
+    try{
+      const c=connectionFromForm();
+      if(!connectionComplete(c))throw new Error("Server, Client ID und Client Secret vollständig eingeben");
+      setConnectionStatus("Neuer Zugang wird geprüft …");
+      await testConnection(c);
+      await activateSavedConnection(c);
+    }catch(e){setConnectionStatus(e.message||"Speichern fehlgeschlagen","error");}
+  });
+  document.querySelector("#pwaClearConnection")?.addEventListener("click",async()=>{
+    if(!confirm("Gespeicherte Serververbindung auf diesem Gerät löschen?"))return;
+    await clearConnection();
+    pwaConnectionRequired=true;
+    setBackendReachable(false);
+    applyOnlineState();
+    openConnectionSettings(true);
+    setConnectionStatus("Verbindung gelöscht. Neue Serverdaten und Service Token eintragen.");
+  });
   if(!connectionComplete()) openConnectionSettings(true);
   return connectionComplete();
 }
@@ -985,7 +1074,7 @@ async function shareServerFile(url, fallbackName, mimeType, preparing="Datei wir
 }
 
 
-const PWA_APP_VERSION = "43";
+const PWA_APP_VERSION = "44";
 const PWA_UPDATE_RELOAD_KEY = "betreuung-pwa-update-reload";
 let pwaRegistration = null;
 let pwaWaitingWorker = null;

@@ -1,4 +1,14 @@
-# Betreuung PWA – GitHub Pages v43
+# Betreuung PWA – GitHub Pages v44
+
+## v44 – Service-Token sicher ersetzen
+
+- Der Verbindungstest im Setup läuft jetzt unabhängig vom globalen Online-/Backend-Status der App. Ein abgelaufener oder falscher alter Token kann dadurch den Test eines neuen Tokens nicht mehr beeinflussen.
+- Der Test verwendet die im Dialog eingegebene Server-URL, Client ID und das neue Client Secret direkt.
+- Nach erfolgreichem Speichern werden die Daten ohne `location.reload()` neu geladen; offene Navigation und der Service-Worker-Updatezustand werden dadurch nicht unnötig verändert.
+- Beim Löschen der Verbindung bleibt die App-Shell geöffnet und fordert direkt zur Neueingabe auf, statt einen Reload auszulösen.
+- Cloudflare-/CORS-/HTML-Fehler werden als kurze verständliche Diagnose angezeigt statt als rohe HTML-Seite.
+- Bei einer Netzwerk-/CORS-Störung nennt die Meldung gezielt `PWA_ALLOWED_ORIGIN`, Cloudflare `OPTIONS` und `Service Auth` als Prüfpunkte.
+
 
 ## Robuste Offline-/Update-Architektur
 
