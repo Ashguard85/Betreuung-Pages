@@ -1,3 +1,9 @@
+# v52 – kompakte Fortsetzungen im Jahresplan
+
+- Bei mehrtägigen Einträgen zeigt ein vollständiger Zwischentag im Jahresplan nur noch den Namen, z. B. `Vreni`.
+- Am letzten Tag bleibt eine konkrete Endzeit sichtbar, z. B. `Vreni · bis 12:00`.
+- Liste und Detailansicht bleiben unverändert ausführlich.
+
 # v51 – Mehrtägige Betreuung mit Von-/Bis-Datum
 
 - Einzelne Betreuungseinträge können jetzt einen echten Start- und Endzeitpunkt über mehrere Kalendertage haben.
