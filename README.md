@@ -1,3 +1,22 @@
+# v51 – Mehrtägige Betreuung mit Von-/Bis-Datum
+
+- Einzelne Betreuungseinträge können jetzt einen echten Start- und Endzeitpunkt über mehrere Kalendertage haben.
+- Beispiele: 15.08. 19:00 → 16.08. 22:00 und 15.08. 07:00 → 20.08. 12:00.
+- Bei Terminen mit Uhrzeit zeigt die Maske zusätzlich **Bis · Datum** mit dem nativen Datumspicker.
+- Bestehende Übernacht-Einträge bleiben kompatibel: alte 22:00–05:00-Termine werden bei der Datenbankmigration automatisch auf den Folgetag abgebildet.
+- Liste, nächste 7 Tage und Jahresübersicht zeigen Fortsetzungen an allen betroffenen Tagen.
+- CSV, JSON-Backup/Restore, PDF und iCalendar verwenden das echte Enddatum.
+- Ganztägige Einträge und die Batch-Erstellung bleiben unverändert.
+- Keine vorhandenen Einträge, Personen, Tokens oder Einstellungen werden gelöscht.
+
+# v50 – Datumspicker für Von/Bis
+
+- Alle Datumsfelder besitzen jetzt einen sichtbaren Kalender-Button.
+- Besonders die Von-/Bis-Felder lassen sich damit eindeutig per nativer Datumsauswahl öffnen.
+- Der bisherige native Date-Input über das gesamte Feld bleibt erhalten.
+- `showPicker()` wird genutzt, wenn der Browser es unterstützt; iOS/ältere Browser erhalten einen Focus/Click-Fallback.
+- Keine Änderung an IndexedDB, localStorage, Serverdaten oder fachlicher Terminlogik.
+
 # v48 – Navigation-/Service-Worker-Fix
 
 - Direkte Aufrufe von `service-worker.js`, `manifest.webmanifest`, Icons und anderen Dateien werden nicht mehr fälschlich auf `index.html` umgeschrieben.
