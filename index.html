@@ -12,7 +12,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="./favicon-v17.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-v17.png">
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./apple-touch-icon-v17.png">
-  <link rel="stylesheet" href="./app.css?v=56">
+  <link rel="stylesheet" href="./app.css?v=57">
   <title>Betreuungsplan</title>
 </head>
 <body>
@@ -136,7 +136,7 @@
       <details class="card settings-disclosure">
         <summary>App & Updates</summary>
         <div class="settings-disclosure-body">
-          <div class="row"><span>App-Version</span><span class="spacer"></span><b id="pwaAppVersion">v56</b></div>
+          <div class="row"><span>App-Version</span><span class="spacer"></span><b id="pwaAppVersion">v57</b></div>
           <p id="pwaUpdateStatus" class="small">Updates werden im Hintergrund geprüft.</p>
           <button id="pwaApplyUpdate" class="secondary full topgap" type="button" hidden>Jetzt aktualisieren</button>
           <p class="small">Neue Versionen werden zuerst vollständig lokal geladen. Die laufende Sitzung bleibt unverändert; automatisch gewechselt wird erst nach einem sicheren Neustart oder bewusst über den Button.</p>
@@ -297,6 +297,7 @@
     <div class="space"></div>
     <button class="primary" id="modalSave">Speichern</button>
     <button class="secondary full topgap" id="modalDuplicate" style="display:none">Termin duplizieren</button>
+    <button class="secondary full topgap apple-calendar-button server-export" id="modalAppleCalendar" style="display:none"> In Apple Kalender</button>
     <button class="secondary full topgap" id="modalShare" style="display:none">Termin teilen (.ics)</button>
     <button class="secondary danger full topgap" id="modalDelete" style="display:none">Eintrag löschen</button>
   </div>
@@ -428,7 +429,7 @@
     <div class="connection-runtime small">
       <div><b>Aktueller Origin:</b> <code id="pwaRuntimeOrigin"></code></div>
       <div><b>Modus:</b> <span id="pwaRuntimeMode"></span></div>
-      <div><b>Geladene PWA:</b> <span id="pwaConnectionAppVersion">v56</span></div>
+      <div><b>Geladene PWA:</b> <span id="pwaConnectionAppVersion">v57</span></div>
       <div><b>Aktiver Service Worker:</b> <span id="pwaConnectionSwVersion">wird geprüft …</span></div>
     </div>
     <label class="label" for="pwaServer">Datenserver</label>
@@ -451,6 +452,6 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="./app.js?v=56"></script>
+<script src="./app.js?v=57"></script>
 </body>
 </html>
