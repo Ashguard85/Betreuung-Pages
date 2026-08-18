@@ -1,4 +1,4 @@
-const APP_VERSION = "58";
+const APP_VERSION = "60";
 const VERSION = `betreuung-pages-v${APP_VERSION}`;
 const SHELL_CACHE = `${VERSION}-shell`;
 const CACHE_PREFIX = "betreuung-pages-v";
@@ -6,8 +6,8 @@ const INDEX_URL = "./index.html";
 
 const ESSENTIAL_SHELL = [
   "./index.html",
-  "./app.css?v=58",
-  "./app.js?v=58",
+  "./app.css?v=60",
+  "./app.js?v=60",
   "./manifest.webmanifest"
 ];
 
@@ -132,5 +132,51 @@ self.addEventListener("fetch", event => {
     } catch (_error) {
       return Response.error();
     }
+  })());
+});
+
+
+const NOTIFICATION_ICON = new URL("./icon-192.png", self.registration.scope).href;
+
+async function applyWorkerBadge(count){
+  const n=Math.max(0,Number(count)||0);
+  try{
+    if(n>0 && navigator.setAppBadge) await navigator.setAppBadge(n);
+    else if(n===0 && navigator.clearAppBadge) await navigator.clearAppBadge();
+  }catch(_e){}
+}
+
+self.addEventListener("push", event=>{
+  event.waitUntil((async()=>{
+    let data={};
+    try{data=event.data?event.data.json():{};}catch(_e){try{data={body:event.data?.text?.()||""};}catch(__e){data={};}}
+    const count=Math.max(0,Number(data.unread_count)||0);
+    await applyWorkerBadge(count);
+    const tag=data.type==="test"?"betreuungsplan-test":"betreuungsplan-changes";
+    await self.registration.showNotification(data.title||"Betreuungsplan",{
+      body:data.body||"Der Betreuungsplan wurde geändert.",
+      icon:NOTIFICATION_ICON,
+      tag,
+      renotify:true,
+      data:{url:data.url||"?changes=1",type:data.type||"changes",unread_count:count}
+    });
+    for(const client of await self.clients.matchAll({type:"window",includeUncontrolled:true})){
+      client.postMessage({type:"PUSH_CHANGES",unread_count:count});
+    }
+  })());
+});
+
+self.addEventListener("notificationclick", event=>{
+  event.notification.close();
+  event.waitUntil((async()=>{
+    const target=new URL(event.notification.data?.url||"?changes=1",self.registration.scope).href;
+    const windows=await self.clients.matchAll({type:"window",includeUncontrolled:true});
+    for(const client of windows){
+      if(new URL(client.url).origin===new URL(self.registration.scope).origin){
+        client.postMessage({type:"OPEN_CHANGES"});
+        if("focus" in client) return client.focus();
+      }
+    }
+    if(self.clients.openWindow) return self.clients.openWindow(target);
   })());
 });

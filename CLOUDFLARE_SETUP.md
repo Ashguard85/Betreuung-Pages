@@ -53,3 +53,7 @@ PWA_ALLOWED_ORIGINS=https://betreuung2.example.net,https://ashguard85.github.io
 ## Apple-Kalender-Direktimport
 
 Der Direktimport verwendet denselben `/calendar.ics`-Pfad wie das bestehende Apple-Kalender-Abo. Wenn dieser Pfad bereits exakt per Access-Bypass freigegeben und mit langem `ICAL_TOKEN` geschützt ist, ist **keine weitere Cloudflare-Regel** nötig. `/export.ics` muss nicht öffentlich freigegeben werden.
+
+## Web Push (v60)
+
+Die Geräte-ID wird ohne zusätzlichen Custom-Header als nicht-geheimer API-Queryparameter übertragen. In Cloudflare Access muss der anonyme `OPTIONS`-Preflight für die bestehenden Service-Token-Header weiterhin bis zum Origin durchgelassen werden. Für Web Push ist kein zusätzlicher öffentlich erreichbarer Backend-Endpunkt nötig; der Docker-Server sendet ausgehend direkt an die im Browser registrierten Push-Endpunkte. Der private VAPID-Schlüssel liegt persistent unter `/app/data/webpush-vapid-private.pem` und darf bei einer Servermigration nicht verloren gehen, solange bestehende Push-Subscriptions weiter funktionieren sollen.
